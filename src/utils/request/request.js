@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 const token = ref('');
 
-const diary = axios.create({
+const httpClient = axios.create({
     baseURL: '/api',
     headers: {
         "Content-Type": 'application/json',
@@ -11,14 +11,18 @@ const diary = axios.create({
 });
 
 export function setToken(newToken) {
-    token.value = newToken; // 更新 token 值
+    localStorage.setItem('token', newToken);
 }
 // 获取最新的 token 值
 const getToken = () => {
-    return token.value;
+    return  localStorage.getItem('token');
 }
 
-diary.interceptors.request.use(
+const removeToken = () => {
+    localStorage.removeItem('token');
+}
+
+httpClient.interceptors.request.use(
     config => {
         const authToken = getToken(); // 使用最新的 token
         if (authToken) {
@@ -31,4 +35,4 @@ diary.interceptors.request.use(
     }
 );
 
-export { diary, token };
+export { httpClient, token };

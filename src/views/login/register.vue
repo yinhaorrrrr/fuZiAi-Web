@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import router from "@/router/router.js";
 import { layer } from "@layui/layui-vue";
+import { Register,emailCode } from '@api/api_login.js'
 
 const username = ref('')
 const password = ref('')
@@ -15,17 +16,31 @@ const handleRegister = () => {
     layer.msg("请填写所有字段", { icon: 2, time: 2000 });
     return;
   }
-
   if (password.value !== confirmPassword.value) {
     layer.msg("两次输入的密码不一致", { icon: 2, time: 2000 });
     return;
   }
 
-  // 这里应该是调用注册API的逻辑
-  layer.msg("注册成功", { icon: 1, time: 1000 });
-  setTimeout(() => {
-    router.push('/login'); // 注册成功后跳转到登录页
-  }, 1000);
+  // 注册API
+  Register({
+    username: username.value,
+    password1: password.value,
+    password2: confirmPassword.value,
+    email: email.value,
+    code: verificationCode.value
+  }
+  ).then(res => {
+    if (res.data.code === 1) {
+      // 注册成功，跳转到指定页面并弹出成功提示
+      layer.msg("注册成功", { icon: 1, time: 1000 });
+      setTimeout(() => {
+        router.push('/home'); // 注册成功后跳转到登录页
+      }, 1000);}
+    else {
+      // 注册失败，弹出返回的失败信息
+      layer.msg(`注册失败: ${res.data.msg || '未知错误'}`, { icon: 2, time: 2000 });
+    }
+  })
 }
 
 const sendVerificationCode = () => {
@@ -34,8 +49,17 @@ const sendVerificationCode = () => {
     return;
   }
 
-  // 这里应该是调用发送验证码API的逻辑
-  layer.msg("验证码已发送至邮箱", { icon: 1, time: 2000 });
+  // 发送验证码API
+  emailCode({ email: email.value }).then(res => {
+    if (res.data.code === 1) {
+      // 验证码发送成功
+      layer.msg("验证码已发送至邮箱", { icon: 1, time: 2000 });}
+    else {
+      // 验证码发送失败
+      layer.msg(`验证码发送失败: ${res.data.msg || '未知错误'}`, { icon: 2, time: 2000 });
+    }
+  })
+
 }
 </script>
 
