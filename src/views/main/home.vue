@@ -4,10 +4,10 @@
     <div class="header">
       <div class="logo">FuZiAI</div>
       <ul class="nav">
-        <li :class="{active: currentNav === 'home'}" @click="currentNav = 'home'">首页</li>
-        <li :class="{active: currentNav === 'noise'}" @click="currentNav = 'noise'">白噪音</li>
-        <li :class="{active: currentNav === 'course'}" @click="currentNav = 'course'">课程列表</li>
-        <li :class="{active: currentNav === 'question'}" @click="currentNav = 'question'">题目列表</li>
+        <li :class="{active: currentView === 'welcome'}" @click="currentView = 'welcome'">首页</li>
+        <li :class="{active: currentView === 'noise'}" @click="currentView = 'noise'">白噪音</li>
+        <li :class="{active: currentView === 'course'}" @click="currentView = 'course'">课程列表</li>
+        <li :class="{active: currentView === 'question'}" @click="currentView = 'question'">题目列表</li>
       </ul>
       <div class="user-box" @mouseenter="showUserMenu=true" >
         <img src="https://element-plus.org/images/element-plus-logo.svg" class="avatar" alt="用户头像">
@@ -32,155 +32,94 @@
         </transition>
       </div>
     </div>
-
-    <!-- 轮播图 -->
-    <div class="carousel-container">
-      <div class="carousel-wrapper">
-        <div class="carousel">
-          <div v-for="(item,index) in carouselItems"
-               :key="index"
-               :class="['carousel-item', getCarouselClass(index)]"
-               @click="changeSlide(index)">
-            <img :src="item.imageUrl" :alt="item.title">
-            <div class="caption">{{ item.title }}</div>
-          </div>
-        </div>
-        <div class="carousel-controls">
-          <button class="control-btn prev-btn" @click="prevSlide">
-            <i class="icon-arrow-left"></i>
-          </button>
-          <button class="control-btn next-btn" @click="nextSlide">
-            <i class="icon-arrow-right"></i>
-          </button>
-        </div>
-        <div class="carousel-indicators">
-          <div v-for="(item, index) in carouselItems"
-               :key="index"
-               :class="['indicator', {active: currentSlide === index}]"
-               @click="changeSlide(index)">
-          </div>
-        </div>
-      </div>
+    <div class="content" >
+      <component :is="currentComponent"></component>
     </div>
 
-    <!-- 功能卡片 -->
-    <div class="section-title">精选功能</div>
-    <div class="card-container">
-      <div v-for="(card, index) in cards"
-           :key="index"
-           class="card"
-           @click="navigateTo(card.link)">
-        <div class="card-image">
-          <img :src="card.image" :alt="card.title">
-        </div>
-        <div class="card-content">
-          <div class="card-title">{{ card.title }}</div>
-          <div class="card-desc">探索更多内容</div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
-
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
 import router from "@/router/router.js";
-import {getNewsList} from "@api/api_news.js";
+import Welcome from "@/views/main/welcome/welcome.vue";
+import Modal from '@/utils/Modal.vue';
+import Question from "@views/main/question/question.vue";
 
-export default {
-  data() {
-    return {
-      currentNav: 'home',
-      showUserMenu: false,
-      currentSlide: 0,
-      carouselItems: [
-        { imageUrl: 'https://element-plus.org/images/mele-banner.png', title: '新课推荐：Vue3实战课程' },
-        { imageUrl: 'https://element-plus.org/images/misboot-left.png', title: '前端架构设计指南' },
-        { imageUrl: 'https://element-plus.org/images/jnpfsoft.png', title: '交互设计大师课' },
-        { imageUrl: 'https://fuziai.oss-cn-hangzhou.aliyuncs.com/ad51884f-6d45-4bcb-b67c-022d1788ec5d.jpg', title: 'Python数据分析实战'}
-      ],
-      cards: [
-        { image: 'https://element-plus.org/images/CRMEB-l.png', title: '直播课程', link: '#' },
-        { image: 'https://element-plus.org/images/misboot-left.png', title: '学习资料', link: '#' },
-        { image: 'https://element-plus.org/images/jnpfsoft.png', title: '在线测试', link: '#' },
-        { image: 'https://element-plus.org/images/mele-banner.png', title: '学习报告', link: '#' }
-      ]
-    }
-  },
-  mounted() {
-    setInterval(this.autoPlay, 5000);
-    this.fetchCarouselData();
-  },
+// 响应式数据
+const currentView = ref('welcome');
+const currentNav = ref('home');
+const showUserMenu = ref(false);
+const currentSlide = ref(0);
+const carouselItems = ref([]);
+import Noise from "@/views/main/noise/noise.vue";
+import Course from "@/views/main/course/course.vue";
+const cards = ref([
+  { image: 'https://element-plus.org/images/CRMEB-l.png', title: '直播课程', link: '#' },
+  { image: 'https://element-plus.org/images/misboot-left.png', title: '学习资料', link: '#' },
+  { image: 'https://element-plus.org/images/jnpfsoft.png', title: '在线测试', link: '#' },
+  { image: 'https://element-plus.org/images/mele-banner.png', title: '学习报告', link: '#' }
+]);
+const htmlContent = ref('');
+const isModalVisible = ref(true);
+const showModal = ref(false);
+const news = ref([]);
+const hideTimeout = ref(null);
 
-  methods: {
-    //获取轮播图数据
-    async fetchCarouselData() {
-      try {
-        const response = await getNewsList();
-        this.carouselItems = response.data.data;
-        console.log(this.carouselItems)// 假设返回的 data 是一个数组，包含轮播图的数据
-      } catch (error) {
-        console.error('轮播图数据加载失败', error);
-      }
-    },
-
-
-    //轮播图相关逻辑
-    getCarouselClass(index) {
-      const total = this.carouselItems.length;
-      const diff = (index - this.currentSlide + total) % total;
-      return {
-        'next': diff === 1,
-        'prev': diff === total - 1,
-        'active': diff === 0
-      };
-    },
-    changeSlide(index) {
-      this.currentSlide = index;
-    },
-    prevSlide() {
-      this.currentSlide = (this.currentSlide - 1 + this.carouselItems.length) % this.carouselItems.length;
-    },
-    nextSlide() {
-      this.currentSlide = (this.currentSlide + 1) % this.carouselItems.length;
-    },
-    autoPlay() {
-      this.nextSlide();
-    },
-    hideUserMenu(){
-      if (this.hideTimeout) {
-        clearTimeout(this.hideTimeout);
-      }
-      this.hideTimeout = setTimeout(() => {
-        this.showUserMenu = false;
-      }, 500);
-    },
-
-    //登出
-    logout(){
-      localStorage.clear("token");
-      router.push("/login");
-      console.log('Logout');
-    },
-    navigateTo(link) {
-      // 实际项目中这里应该是路由跳转
-      console.log('Navigate to:', link);
-    }
+const currentComponent = computed(() => {
+  switch (currentView.value) {
+    case 'welcome':
+      return Welcome;
+    case 'noise':
+      return Noise;
+    case 'course':
+      return Course;
+    case 'question':
+      return Question;
+    default:
+      return Welcome;
   }
-}
+});
+
+// 方法
+const hideUserMenu = () => {
+  if (hideTimeout.value) {
+    clearTimeout(hideTimeout.value);
+  }
+  hideTimeout.value = setTimeout(() => {
+    showUserMenu.value = false;
+  }, 500);
+};
+
+const logout = () => {
+  localStorage.clear("token");
+  router.push("/login");
+  console.log('Logout');
+};
+
+const navigateTo = (link) => {
+  // 实际项目中这里应该是路由跳转
+  console.log('Navigate to:', link);
+};
+
+const autoPlay = () => {
+  // 这里填写自动播放逻辑
+};
+
+const fetchCarouselData = () => {
+  // 获取轮播数据的逻辑
+};
+
+onMounted(() => {
+  setInterval(autoPlay, 5000);
+  fetchCarouselData();
+});
 </script>
 
 <style>
-/* 全局变量 */
-:root {
-  --primary-color: #5d9b9b;
-  --secondary-color: #f8f9fa;
-  --accent-color: #ff7e67;
-  --text-color: #333;
-  --text-light: #777;
-  --white: #ffffff;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --transition: all 0.3s ease;
+.content
+{
+  width: 100%;
+  margin-top: 70px;
 }
 
 /* 基础样式 */
@@ -198,9 +137,8 @@ body {
 }
 
 .container {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 20px;
+  width: 100%;
+  height: 100vh;
 }
 
 /* 顶部导航 */
@@ -336,331 +274,6 @@ body {
 .icon-logout {
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff6b6b"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>') no-repeat center;
 }
-
-.icon-arrow-left, .icon-arrow-right {
-  width: 24px;
-  height: 24px;
-}
-
-.icon-arrow-left {
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%235d9b9b"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>') no-repeat center;
-}
-
-.icon-arrow-right {
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%235d9b9b"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>') no-repeat center;
-}
-
-/* 轮播图容器 */
-.carousel-container {
-  width: 100%;
-  margin-top: 80px;
-
-  padding: 40px 0;
-}
-
-.carousel-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 1200px;
-  height: 400px;
-  margin: 0 auto;
-  overflow: hidden;
-  border-radius: 16px;
-}
-
-.carousel {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-/* 轮播项 */
-.carousel-item {
-  position: absolute;
-  width: 70%;
-  height: 100%;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(0.85);
-  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0.6;
-  z-index: 1;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.carousel-item.active {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-  z-index: 3;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.carousel-item.prev {
-  transform: translate(-120%, -50%) scale(0.85);
-  opacity: 0.6;
-  z-index: 2;
-}
-
-.carousel-item.next {
-  transform: translate(20%, -50%) scale(0.85);
-  opacity: 0.6;
-  z-index: 2;
-}
-
-.carousel-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1.5rem;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
-  color: var(--white);
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-/* 控制按钮 */
-.carousel-controls {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
-  display: flex;
-  justify-content: space-between;
-  z-index: 4;
-  padding: 0 20px;
-}
-
-.control-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-}
-
-.control-btn:hover {
-  background: var(--primary-color);
-}
-
-.control-btn:hover .icon-arrow-left,
-.control-btn:hover .icon-arrow-right {
-  filter: brightness(0) invert(1);
-}
-
-/* 指示器 */
-.carousel-indicators {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  z-index: 4;
-}
-
-.indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.indicator.active {
-  background: var(--white);
-  transform: scale(1.3);
-}
-
-/* 卡片区域 */
-.section-title {
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--primary-color);
-  margin: 40px 0 30px;
-  position: relative;
-}
-
-.section-title::after {
-  content: '';
-  display: block;
-  width: 80px;
-  height: 4px;
-  background: var(--accent-color);
-  margin: 10px auto 0;
-  border-radius: 2px;
-}
-
-.card-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
-  padding: 0 20px 60px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.card {
-  background: var(--white);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-  cursor: pointer;
-}
-
-.card:hover {
-  transform: translateY(-10px);
-  box-shadow: var(--shadow-md);
-}
-
-.card-image {
-  height: 200px;
-  overflow: hidden;
-}
-
-.card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.card:hover .card-image img {
-  transform: scale(1.05);
-}
-
-.card-content {
-  padding: 20px;
-}
-
-.card-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--text-color);
-}
-
-.card-desc {
-  font-size: 0.9rem;
-  color: var(--text-light);
-}
-
-/* 动画 */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 1024px) {
-  .carousel-wrapper {
-    height: 350px;
-  }
-
-  .carousel-item {
-    width: 80%;
-  }
-
-  .nav {
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .header {
-    padding: 1rem;
-  }
-
-  .logo {
-    margin-right: 1.5rem;
-    font-size: 1.5rem;
-  }
-
-  .nav {
-    gap: 1rem;
-    font-size: 0.9rem;
-  }
-
-  .carousel-wrapper {
-    height: 300px;
-  }
-
-  .caption {
-    font-size: 1.2rem;
-    padding: 1rem;
-  }
-
-  .card-container {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-}
-
-@media (max-width: 576px) {
-  .header {
-    flex-wrap: wrap;
-    padding: 0.5rem;
-    height: auto;
-  }
-
-  .logo {
-    width: 100%;
-    text-align: center;
-    margin: 0.5rem 0;
-  }
-
-  .nav {
-    width: 100%;
-    justify-content: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .user-box {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-  }
-
-  .carousel-container {
-    margin-top: 120px;
-    padding: 20px 0;
-  }
-
-  .carousel-wrapper {
-    height: 250px;
-  }
-
-  .carousel-item {
-    width: 90%;
-  }
-
-  .section-title {
-    font-size: 1.5rem;
-    margin: 30px 0 20px;
-  }
-
-  .card-container {
-    grid-template-columns: 1fr;
-    padding: 0 15px 40px;
-  }
-}
 </style>
+
+

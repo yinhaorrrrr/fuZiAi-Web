@@ -3,10 +3,14 @@ import Login from '@views/login/login.vue';
 import Home from '@views/main/home.vue';
 import Register from "@views/login/register.vue";
 import {layer} from "@layui/layui-vue";
+import Test from "@views/main/test.vue";
+import Question from "@views/main/question/question.vue";
 const routes = [
     {path:'/login',component: Login},
     {path:'/register',component: Register},
     {path:'/home',component: Home,meta: { requiresAuth: true }},
+    {path:'/test',component:Test},
+    {path:'/question',component:Question},
     {path: '/:pathMatch(.*)*', redirect: '/home'}, // 重定向到首页
 ];
 
