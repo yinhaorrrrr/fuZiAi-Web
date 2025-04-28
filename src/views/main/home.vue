@@ -16,7 +16,7 @@
             <div class="menu-item">
               <i class="icon-experience"></i>经验值: 1500
             </div>
-            <div class="menu-item">
+            <div class="menu-item" @click="currentView = 'report'">
               <i class="icon-report"></i>学习周报
             </div>
             <div class="menu-item">
@@ -53,6 +53,7 @@ const currentSlide = ref(0);
 const carouselItems = ref([]);
 import Noise from "@/views/main/noise/noise.vue";
 import Course from "@/views/main/course/course.vue";
+import Report from "@views/main/report/report.vue";
 const cards = ref([
   { image: 'https://element-plus.org/images/CRMEB-l.png', title: '直播课程', link: '#' },
   { image: 'https://element-plus.org/images/misboot-left.png', title: '学习资料', link: '#' },
@@ -75,10 +76,13 @@ const currentComponent = computed(() => {
       return Course;
     case 'question':
       return Question;
+    case 'report':
+      return Report; // 动态导入学习周报组件
     default:
       return Welcome;
   }
 });
+
 
 // 方法
 const hideUserMenu = () => {
