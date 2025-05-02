@@ -1,4 +1,5 @@
 <template>
+  <div class="background-layer"></div>
   <div class="container">
     <!-- 顶部导航 -->
     <div class="header">
@@ -33,37 +34,24 @@
       </div>
     </div>
     <div class="content" >
-      <component :is="currentComponent"></component>
+      <component :is="currentComponent" @update-view="currentView = $event" />
     </div>
-
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import router from "@/router/router.js";
 import Welcome from "@/views/main/welcome/welcome.vue";
-import Modal from '@/utils/Modal.vue';
 import Question from "@views/main/question/question.vue";
 
 // 响应式数据
 const currentView = ref('welcome');
-const currentNav = ref('home');
 const showUserMenu = ref(false);
-const currentSlide = ref(0);
-const carouselItems = ref([]);
 import Noise from "@/views/main/noise/noise.vue";
 import Course from "@/views/main/course/course.vue";
 import Report from "@views/main/report/report.vue";
-const cards = ref([
-  { image: 'https://element-plus.org/images/CRMEB-l.png', title: '直播课程', link: '#' },
-  { image: 'https://element-plus.org/images/misboot-left.png', title: '学习资料', link: '#' },
-  { image: 'https://element-plus.org/images/jnpfsoft.png', title: '在线测试', link: '#' },
-  { image: 'https://element-plus.org/images/mele-banner.png', title: '学习报告', link: '#' }
-]);
-const htmlContent = ref('');
-const isModalVisible = ref(true);
-const showModal = ref(false);
-const news = ref([]);
+
 const hideTimeout = ref(null);
 
 const currentComponent = computed(() => {
@@ -120,17 +108,28 @@ onMounted(() => {
 </script>
 
 <style>
+
+.background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #c3e4ff 0%, #e3f5ff 100%);
+  background: #60aff6;
+  background: -webkit-linear-gradient(225deg, #60aff6 0%, #c7f9c6 100%);
+  background: linear-gradient(225deg, #60aff6 0%, #c7f9c6 100%);
+  z-index: -1;
+}
+
+
+.container {
+  width: 100%;
+}
 .content
 {
   width: 100%;
   margin-top: 70px;
-}
-
-/* 基础样式 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 body {
@@ -140,24 +139,23 @@ body {
   line-height: 1.6;
 }
 
-.container {
-  width: 100%;
-  height: 100vh;
-}
 
-/* 顶部导航 */
 .header {
   display: flex;
   align-items: center;
   padding: 1rem 2rem;
-  background: var(--white);
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.6); /* 半透明背景 */
+  backdrop-filter: blur(10px);          /* 毛玻璃模糊 */
+  -webkit-backdrop-filter: blur(10px);  /* 兼容 Safari */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: fixed;
   width: 100%;
   top: 0;
   left: 0;
   z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* 可选：底部分隔线 */
 }
+
 
 .logo {
   font-size: 1.8rem;
@@ -278,6 +276,7 @@ body {
 .icon-logout {
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff6b6b"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>') no-repeat center;
 }
+
 </style>
 
 

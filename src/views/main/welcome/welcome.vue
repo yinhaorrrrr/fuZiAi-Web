@@ -52,7 +52,7 @@
       <div v-for="(card, index) in cards"
            :key="index"
            class="card"
-           @click="navigateTo(card.link)">
+           @click="handleCardClick(card.link)">
         <div class="card-image">
           <img :src="card.image" :alt="card.title">
         </div>
@@ -65,122 +65,110 @@
   </div>
 </template>
 
-<script>
-import router from "@/router/router.js";
-import {getNewsById, getNewsList} from "@api/api_news.js";
-import axios from "axios";
-import Modal from 'E:\\web\\项目\\loginTest\\src\\utils\\Modal.vue';
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { getNewsById, getNewsList } from '@api/api_news.js'
+import Modal from '@/utils/Modal.vue'
+const emit = defineEmits(['update-view'])
 
+const router = useRouter()
 
+// 状态
+const currentNav = ref('home')
+const showUserMenu = ref(false)
+const currentSlide = ref(0)
+const carouselItems = ref([])
+const cards = ref([
+  { image: 'https://element-plus.org/images/CRMEB-l.png', title: '学习周报', link: 'report' },
+  { image: 'https://element-plus.org/images/misboot-left.png', title: '精选课程', link: 'course' },
+  { image: 'https://element-plus.org/images/jnpfsoft.png', title: '题目练习', link: 'question' },
+  { image: 'https://element-plus.org/images/mele-banner.png', title: '更多内容', link: 'other' }
+])
+const htmlContent = ref('')
+const showModal = ref(false)
+const news = ref({})
+const hideTimeout = ref(null)
 
-export default {
-  data() {
-    return {
-      currentNav: 'home',
-      showUserMenu: false,
-      currentSlide: 0,
-      carouselItems: [
-      ],
-      cards: [
-        { image: 'https://element-plus.org/images/CRMEB-l.png', title: '直播课程', link: '#' },
-        { image: 'https://element-plus.org/images/misboot-left.png', title: '学习资料', link: '#' },
-        { image: 'https://element-plus.org/images/jnpfsoft.png', title: '在线测试', link: '#' },
-        { image: 'https://element-plus.org/images/mele-banner.png', title: '学习报告', link: '#' }
-      ],
-      htmlContent: '',
-      isModalVisible: true,
-      showModal: false,
-      news:[]
-    }
-  },
-  mounted() {
-    setInterval(this.autoPlay, 5000);
-    this.fetchCarouselData();
-  },
-  components: {
-    Modal
-  },
-  methods: {
-    //获取轮播图数据
-    async fetchCarouselData() {
-      try {
-        const response = await getNewsList();
-        this.carouselItems = response.data.data;
-        console.log(this.carouselItems)// 假设返回的 data 是一个数组，包含轮播图的数据
-      } catch (error) {
-        console.error('轮播图数据加载失败', error);
-      }
-    },
-
-    // 点击轮播图的图片，显示弹窗并获取详细内容
-    async showNews(id) {
-      try {
-        // 调用接口并传入id，获取返回的数据
-        const response = await getNewsById(id);
-        // 假设返回的数据包含text字段，更新htmlContent
-        this.news = response.data;
-        console.log(this.news);
-        // 显示弹窗
-        this.showModal = true;
-      } catch (error) {
-        console.error('获取新闻详情失败', error);
-      }
-    },
-
-
-    // 关闭弹窗
-    closeModal() {
-      this.showModal = false;
-      this.news = ''; // 清空HTML内容
-    },
-
-    //轮播图相关逻辑
-    getCarouselClass(index) {
-      const total = this.carouselItems.length;
-      const diff = (index - this.currentSlide + total) % total;
-      return {
-        'next': diff === 1,
-        'prev': diff === total - 1,
-        'active': diff === 0
-      };
-    },
-    changeSlide(index) {
-      this.currentSlide = index;
-    },
-    prevSlide() {
-      this.currentSlide = (this.currentSlide - 1 + this.carouselItems.length) % this.carouselItems.length;
-    },
-    nextSlide() {
-      this.currentSlide = (this.currentSlide + 1) % this.carouselItems.length;
-    },
-    autoPlay() {
-      this.nextSlide();
-    },
-
-    hideUserMenu(){
-      if (this.hideTimeout) {
-        clearTimeout(this.hideTimeout);
-      }
-      this.hideTimeout = setTimeout(() => {
-        this.showUserMenu = false;
-      }, 500);
-    },
-
-    //登出
-    logout(){
-      localStorage.clear("token");
-      router.push("/login");
-      console.log('Logout');
-    },
-    navigateTo(link) {
-      // 实际项目中这里应该是路由跳转
-      console.log('Navigate to:', link);
-    },
-
-
+// 轮播图切换
+function getCarouselClass(index) {
+  const total = carouselItems.value.length
+  const diff = (index - currentSlide.value + total) % total
+  return {
+    next: diff === 1,
+    prev: diff === total - 1,
+    active: diff === 0
   }
 }
+function changeSlide(index) {
+  currentSlide.value = index
+}
+function prevSlide() {
+  currentSlide.value = (currentSlide.value - 1 + carouselItems.value.length) % carouselItems.value.length
+}
+function nextSlide() {
+  currentSlide.value = (currentSlide.value + 1) % carouselItems.value.length
+}
+function autoPlay() {
+  nextSlide()
+}
+
+// 获取轮播图数据
+async function fetchCarouselData() {
+  try {
+    const response = await getNewsList()
+    carouselItems.value = response.data.data
+    console.log(carouselItems.value)
+  } catch (error) {
+    console.error('轮播图数据加载失败', error)
+  }
+}
+
+// 点击轮播图显示弹窗
+async function showNews(id) {
+  try {
+    const response = await getNewsById(id)
+    news.value = response.data
+    showModal.value = true
+  } catch (error) {
+    console.error('获取新闻详情失败', error)
+  }
+}
+
+function closeModal() {
+  showModal.value = false
+  news.value = ''
+}
+
+// 用户菜单显示/隐藏
+function hideUserMenu() {
+  if (hideTimeout.value) {
+    clearTimeout(hideTimeout.value)
+  }
+  hideTimeout.value = setTimeout(() => {
+    showUserMenu.value = false
+  }, 500)
+}
+
+// 登出
+function logout() {
+  localStorage.clear('token')
+  router.push('/login')
+  console.log('Logout')
+}
+
+// 点击卡片时通知父组件修改视图
+function handleCardClick(link) {
+  emit('update-view', link)
+}
+
+// 生命周期
+onMounted(() => {
+  setInterval(autoPlay, 5000)
+  fetchCarouselData()
+})
 </script>
+
 
 <style>
 /* 全局变量 */

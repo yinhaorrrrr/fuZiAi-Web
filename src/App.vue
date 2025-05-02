@@ -7,7 +7,6 @@
 </template>
 
 <style scoped>
-
 /* 全局变量 */
 :root {
 
@@ -21,6 +20,4 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
   --transition: all 0.3s ease;
 }
-
-
 </style>

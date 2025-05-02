@@ -106,8 +106,8 @@ const sendVerificationCode = () => {
 
 <style scoped>
 .body {
+  background: linear-gradient(135deg, #c3e4ff 0%, #e3f5ff 100%);
   font-family: 'Arial', sans-serif;
-  background-color: #f4f4f4;
   margin: 0;
   display: flex;
   align-items: center;
