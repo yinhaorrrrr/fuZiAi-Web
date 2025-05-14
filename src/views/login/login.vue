@@ -34,7 +34,7 @@ const goToRegister = () => {
 <template>
   <div class="body">
     <div class="login-container">
-      <h2> 欢迎来到fuziai喵</h2>
+      <h2> 夫子AI智慧教育服务系统</h2>
         <div class="form-group">
           <label for="username">用户名:</label>
           <input type="text" id="username" name="username" placeholder="username" v-model="username">

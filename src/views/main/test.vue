@@ -1,9 +1,6 @@
 <!-- PdfViewer.vue -->
 <template>
-  <div class="pdf-viewer">
-    <!-- PDF 文件的链接放在 pdfUrl 变量中，也可直接写在 :pdf 属性内 -->
-    <VuePdfApp :pdf="pdfUrl" :config="viewerConfig" style="height: 100vh;" />
-  </div>
+  <div class="background-layer"></div>
 </template>
 
 <script setup>
@@ -45,28 +42,16 @@ const viewerConfig = {
 </script>
 
 <style scoped>
-.pdf-app.dark {
-  --pdf-app-background-color: #ffffff;
-  --pdf-toolbar-color: #f8faf8;
-  --pdf-toolbar-border-color: #e0f0e0;
-  --pdf-toolbar-font-color: #4a6b4a;
-  --pdf-button-hover-font-color: #2e8b57;
-  --pdf-button-hover-background: #e8f5e9;
-  --pdf-page-number-border: 1px solid #c8e6c9;
-  --pdf-page-number-focus-shadow: 0 0 0 2px rgba(46, 139, 87, 0.2);
-  --pdf-sidebar-color: #f1f8f1;
-  --pdf-sidebar-border-color: #d0e9d0;
+.background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #c3e4ff 0%, #e3f5ff 100%);
+  background: #60aff6;
+  background: -webkit-linear-gradient(225deg, #60aff6 0%, #c7f9c6 100%);
+  background: linear-gradient(225deg, #60aff6 0%, #c7f9c6 100%);
+  z-index: -1;
 }
-
-/* 添加平滑过渡效果 */
-:deep(.pdf-app button) {
-  transition: all 0.2s ease-in-out;
-}
-
-/* 调整工具栏高度和间距 */
-:deep(.pdf-app .toolbar) {
-  padding: 8px 16px;
-  height: 48px;
-}
-
 </style>

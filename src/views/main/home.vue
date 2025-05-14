@@ -3,15 +3,21 @@
   <div class="container">
     <!-- 顶部导航 -->
     <div class="header">
-      <div class="logo">FuZiAI</div>
+      <div class="logo">夫子AI</div>
       <ul class="nav">
         <li :class="{active: currentView === 'welcome'}" @click="currentView = 'welcome'">首页</li>
         <li :class="{active: currentView === 'noise'}" @click="currentView = 'noise'">白噪音</li>
         <li :class="{active: currentView === 'course'}" @click="currentView = 'course'">课程列表</li>
         <li :class="{active: currentView === 'question'}" @click="currentView = 'question'">题目列表</li>
+        <li  @click="currentView = 'question'">知识图谱</li>
+        <li>
+          <a href="https://iai.aichatos8.com.cn/#/home?from=lg" target="_blank" style="text-decoration: none; color: inherit;">
+            智能问答
+          </a>
+        </li>
       </ul>
       <div class="user-box" @mouseenter="showUserMenu=true" >
-        <img src="https://element-plus.org/images/element-plus-logo.svg" class="avatar" alt="用户头像">
+        <img src="https://upload-bbs.miyoushe.com/upload/2023/07/08/306223175/6d409dc333126b6019a1ce94d95f7a16_6666661978056974830.jpg?x-oss-process=image/resize,s_600/quality,q_80/auto-orient,0/interlace,1/format,jpg" class="avatar" alt="用户头像">
         <transition name="fade">
           <div v-show="showUserMenu" class="user-menu"  @mouseenter="showUserMenu=true" @mouseleave="hideUserMenu">
             <div class="menu-item">

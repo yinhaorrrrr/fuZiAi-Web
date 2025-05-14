@@ -80,9 +80,9 @@ const showUserMenu = ref(false)
 const currentSlide = ref(0)
 const carouselItems = ref([])
 const cards = ref([
-  { image: 'https://element-plus.org/images/CRMEB-l.png', title: '学习周报', link: 'report' },
-  { image: 'https://element-plus.org/images/misboot-left.png', title: '精选课程', link: 'course' },
-  { image: 'https://element-plus.org/images/jnpfsoft.png', title: '题目练习', link: 'question' },
+  { image: 'https://eb118-file.cdn.bcebos.com/upload/fad55bea445e47d39ed7c7a997703794_1198981621.png', title: '学习周报', link: 'report' },
+  { image: 'https://ts1.tc.mm.bing.net/th/id/R-C.b80f1949e6abf7d16d9e83c2c465a78f?rik=ztnxBS5LE4NoVg&riu=http%3a%2f%2fwww.grazy.cn%2fdata%2fupload%2fueditor%2f20180628%2f5b3485e54461d.jpg&ehk=6bqkwzlcGPnp4pwqQLtGlSVlQTR5Zyf45St91YyTGwg%3d&risl=&pid=ImgRaw&r=0', title: '精选课程', link: 'course' },
+  { image: 'https://file.ehuixue.cn/Files/Courases/Img/201711211558174434.jpg', title: '题目练习', link: 'question' },
   { image: 'https://element-plus.org/images/mele-banner.png', title: '更多内容', link: 'other' }
 ])
 const htmlContent = ref('')
